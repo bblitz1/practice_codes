@@ -21,7 +21,7 @@ class Polynomial:
         
     def create(self, a=1, v=-1, b=0):
       
-        return 4 + v * t + (0.5* a* t**2) + b*(t**3)
+        return 4 + v * self.t + (0.5* a* self.t**2) + b*(self.t**3)
 
 
     def fitting(self, a_low, a_hi, v_low, v_hi, N, b=0):
