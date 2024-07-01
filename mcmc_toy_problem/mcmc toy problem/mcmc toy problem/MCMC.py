@@ -1,9 +1,8 @@
 import numpy as np
 
 class MCMCModel:
-    def __init__(self, t, data_generator):
+    def __init__(self, t):
         self.t = t
-        self.data_generator = data_generator
     
     def polynomial(self, v=-1, a=1, b=0):
         """
@@ -29,49 +28,49 @@ class MCMCModel:
         diff = observed - predicted
         return np.sqrt(np.mean(diff**2))
 
-    def fit_with_noise(self, a_low, a_high, v_low, v_high, N, noise_amplitude, b=0):
-        """
-        Fits the data with noise for a given amplitude and returns the best-fit parameters and likelihood.
+    # def fit_with_noise(self, a_low, a_high, v_low, v_high, N, noise_amplitude, b=0):
+    #     """
+    #     Fits the data with noise for a given amplitude and returns the best-fit parameters and likelihood.
 
-        Args:
-        - a_low, a_high: bounds for acceleration
-        - v_low, v_high: bounds for velocity
-        - N: number of grid points
-        - noise_amplitude: amplitude of the noise
-        - b: coefficient of cubic term (default: 0)
+    #     Args:
+    #     - a_low, a_high: bounds for acceleration
+    #     - v_low, v_high: bounds for velocity
+    #     - N: number of grid points
+    #     - noise_amplitude: amplitude of the noise
+    #     - b: coefficient of cubic term (default: 0)
 
-        Returns:
-        - best_a: best-fit acceleration
-        - best_v: best-fit velocity
-        - likelihood: likelihood of the best fit
-        """
-        true_vals = self.polynomial(v=-1, a=1, b=b)
-        noisy_vals = self.generate_data(true_vals, noise_amplitude)
+    #     Returns:
+    #     - best_a: best-fit acceleration
+    #     - best_v: best-fit velocity
+    #     - likelihood: likelihood of the best fit
+    #     """
+    #     true_vals = self.polynomial(v=-1, a=1, b=b)
+    #     noisy_vals = self.generate_data(true_vals, noise_amplitude)
 
-        a_values = np.linspace(a_low, a_high, N)
-        v_values = np.linspace(v_low, v_high, N)
-        rms_errors = []
+    #     a_values = np.linspace(a_low, a_high, N)
+    #     v_values = np.linspace(v_low, v_high, N)
+    #     rms_errors = []
 
-        for v_val in v_values:
-            for a_val in a_values:
-                trial_vals = self.polynomial(v=v_val, a=a_val, b=b)
-                rms_error = self.compute_rms(noisy_vals, trial_vals)
-                rms_errors.append(rms_error)
+    #     for v_val in v_values:
+    #         for a_val in a_values:
+    #             trial_vals = self.polynomial(v=v_val, a=a_val, b=b)
+    #             rms_error = self.compute_rms(noisy_vals, trial_vals)
+    #             rms_errors.append(rms_error)
 
-        rms_errors = np.array(rms_errors)
-        best_index = np.argmin(rms_errors)
-        best_a = a_values[best_index % N]
-        best_v = v_values[best_index // N]
+    #     rms_errors = np.array(rms_errors)
+    #     best_index = np.argmin(rms_errors)
+    #     best_a = a_values[best_index % N]
+    #     best_v = v_values[best_index // N]
 
-        best_rms = rms_errors[best_index]
-        likelihood = 1 / best_rms if best_rms != 0 else np.inf
+    #     best_rms = rms_errors[best_index]
+    #     likelihood = 1 / best_rms if best_rms != 0 else np.inf
 
-        return best_a, best_v, likelihood
+    #     return best_a, best_v, likelihood
 
-    def likelihood(self, noisy_vals, a, v, b=0):
+    def likelihood(self, noisy_vals, a, v, b=0, tol=1e-9):
         trial_vals = self.polynomial(v=v, a=a, b=b)
         rms_error = self.compute_rms(noisy_vals, trial_vals)
-        likelihood = 1 / rms_error if rms_error != 0 else np.inf
+        likelihood = 1 / (rms_error + tol) 
         return likelihood
 
     def metropolis_hastings(self, a_range, v_range, num_iterations, noise_amplitude, b=0):
